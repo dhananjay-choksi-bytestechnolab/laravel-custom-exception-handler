@@ -1,0 +1,22 @@
+{
+    "name": "bytestechnolabs/custom-exception-handler",
+    "description": "Custom Exception Handler for Laravel",
+    "type": "laravel-package",
+    "keywords": ["laravel", "package", "exception handler", "custom-exception-handler"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dhananjay Choksi",
+            "email": "dhananjay.choksi@bytestechnolab.com"
+        }
+    ],
+    "require": {
+        "php": "^7.3|^8.0",
+        "illuminate/support": "^8.0|^9.0|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BytesTechnolabs\\CustomExceptionHandler\\": "src/"
+        }
+    }
+}
