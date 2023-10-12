@@ -19,5 +19,5 @@
             "BytesTechnolabs\\CustomExceptionHandler\\": "src/"
         }
     },
-    "minimum-stability": "dev"  
+    "minimum-stability": "stable"  
 }
