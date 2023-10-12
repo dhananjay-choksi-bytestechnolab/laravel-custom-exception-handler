@@ -77,6 +77,9 @@ try {
 } catch (\Exception $exception) {
     // Add custom data to the response
     CustomDataHelper::addCustomDataToConfig($exception, ['custom' => 'data'], 'custom_data_key');
+
+    // Rethrow the Exception
+    throw $exception;
 }
 ```
 
