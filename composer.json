@@ -19,5 +19,7 @@
             "BytesTechnolabs\\CustomExceptionHandler\\": "src/"
         }
     },
-    "minimum-stability": "stable"  
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "version": "1.0.0"  // Specify the version here
 }
