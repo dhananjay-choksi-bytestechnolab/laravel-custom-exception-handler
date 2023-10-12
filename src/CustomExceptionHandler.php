@@ -5,84 +5,84 @@ namespace BytesTechnolabs\CustomExceptionHandler;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Throwable;
+use Illuminate\Support\Str;
 
 class CustomExceptionHandler extends ExceptionHandler
 {
+    /**
+     * Report or log an exception.
+     *
+     * @param  \Throwable  $exception
+     * @return void
+     */
     public function report(Throwable $exception)
     {
-        // Custom error reporting logic, if needed
-        // dd('AAAAAAAAAA');
+        // Custom error reporting logic can be added here if needed
     }
 
+    /**
+     * Render an exception into an HTTP response.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Throwable  $exception
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function render($request, Throwable $exception)
     {
-        // Logic 1
-        // $exceptionClassName = get_class($exception);
-
-        // // Get the HTTP response code from the exception
-        // $statusCode = $exception->getCode();
-
-        // dd($statusCode);
-        // $allCustomExceptionsConfigurations = config('custom_exception_handler.exceptions');
-
-        // // dd($allCustomExceptionsConfigurations);
-        // $filteredExceptions = array_filter($allCustomExceptionsConfigurations, function ($configException) use($exceptionClassName) {
-        //     if (!empty($configException['exception_class_name']) && ($configException['exception_class_name'] == $exceptionClassName)) {
-        //         return true;
-        //     }
-        // });
-        // $filteredExceptions = array_values($filteredExceptions);
-        // if (!empty($filteredExceptions[0]['custom_response']) && is_array($filteredExceptions[0]['custom_response'])) {
-        //     $currentExceptionConfigurationCustomResponse = $filteredExceptions[0]['custom_response'];
-        //     return new JsonResponse($currentExceptionConfigurationCustomResponse);
-        // }
-        // End Logic 1
-        
-
-        // Logic 2
-
+        // Get the class name of the thrown exception
         $exceptionClassName = get_class($exception);
-        $allCustomExceptionsConfigurations = config('custom_exception_handler.exceptions');
-        
-        if (in_array($exceptionClassName, $allCustomExceptionsConfigurations)) {
 
+        // Get all custom exception configurations from the Laravel configuration
+        $allCustomExceptionsConfigurations = config('custom_exception_handler.exceptions');
+
+        // Check if the exception class is listed in the custom exceptions configurations
+        if (in_array($exceptionClassName, $allCustomExceptionsConfigurations)) {
             $allCustomExceptionsConfigurationsMessages = config('custom_exception_handler.exceptions_messages');
             $allCustomExceptionsConfigurationsErrorCodes = config('custom_exception_handler.exceptions_status_codes');
             $allCustomExceptionsConfigurationsCustomData = config("custom_exception_handler.custom_data");
+            $defaultExceptionResponseData = config("custom_exception_handler.default_exception_response_data");
 
-            
-
+            // Initialize the custom response array
             $customResponse = [];
 
+            // Set the HTTP response code
             if (!empty($allCustomExceptionsConfigurationsErrorCodes[$exceptionClassName])) {
                 $customResponse['code'] = $allCustomExceptionsConfigurationsErrorCodes[$exceptionClassName];
+            } else {
+                $defaultExceptionStatusCode = config("custom_exception_handler.default_exception_status_code");
+                $customResponse['code'] = !empty($defaultExceptionStatusCode) ? $defaultExceptionStatusCode : 500;
             }
+
+            // Set the response message
             if (!empty($allCustomExceptionsConfigurationsMessages[$exceptionClassName])) {
                 $customResponse['message'] = $allCustomExceptionsConfigurationsMessages[$exceptionClassName];
+            } else {
+                $defaultExceptionsMessages = config("custom_exception_handler.default_exceptions_messages");
+                $exceptionHeadline = Str::headline($exceptionClassName);
+                $customResponse['message'] = !empty($defaultExceptionsMessages) ? $defaultExceptionsMessages : "{$exceptionHeadline} Exception Occurred.";
             }
-            
-            if (!empty($allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['data'])) {
-                $customData = $allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['data'];
 
+            // Set custom data if provided
+            $customData = !empty($allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['data']) ? $allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['data'] : $defaultExceptionResponseData;
+
+            // Determine the key for custom data
+            $defaultExceptionResponseDataKey = config("custom_exception_handler.default_exception_response_data_key");
+            if (!empty($allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['custom_key'])) {
+                $customDataKey = $allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['custom_key'];
+            } elseif (!empty($defaultExceptionResponseDataKey)) {
+                $customDataKey = $defaultExceptionResponseDataKey;
+            } else {
                 $customDataKey = 'data';
-
-                if (!empty($allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['custom_key'])) {
-                    $customDataKey =  $allCustomExceptionsConfigurationsCustomData[$exceptionClassName]['custom_key'];
-                }
-
-                $customResponse[$customDataKey] = $customData;
             }
 
-            return new JsonResponse($customResponse);            
+            // Add custom data to the custom response
+            $customResponse[$customDataKey] = $customData;
+
+            // Return a JSON response with the custom data
+            return new JsonResponse($customResponse);
         }
 
+        // If the exception is not in the custom exceptions list, return the default Laravel response
         return parent::render($request, $exception);
     }
 }
-
-
-// [
-//     error => code,
-//     "message" => "dc",
-//     'data' => []
-// ]
